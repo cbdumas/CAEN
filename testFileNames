@@ -1,0 +1,13 @@
+Date 4-23-2013
+
+Point source resolution tests of SmartCAM aperture using Co-57 source, 10 mCi on 1 Aug 06
+
+Filename KEY:
+
+pinholeRow_pinholeSize_distanceDromPlane_lateralDisplacement.dat
+
+NOTES:
+
+Lateral displacement of 8cm is actually 9cm, 16cm = 14cm
+
+All acquisitions 30 seconds except small holes 50 seconds
