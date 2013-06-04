@@ -60,6 +60,7 @@ if examine == 'n' or examine == 'N':
 i=0 #index to count events
 xpoints = list()
 ypoints = list()
+energylist = list()
 while queueHead:
     i+=1
     print("event!",i)
@@ -82,14 +83,19 @@ while queueHead:
     energy = sum(peaks)
     xpoints.append(x)
     ypoints.append(y)
+    energylist.append(energy)
     queueHead = queueHead.contents.nxt
 
 while queueTail:
     caenlib.freeEvent(queueTail.contents.nxt)
     queueTail = queueTail.contents.prv
 
+plt.figure()
 plt.scatter(xpoints,ypoints)
+plt.figure()
+plt.hist(energylist,bins=(max(energylist)-min(energylist)))
 plt.show()
+
 
 caenlib.stopCAEN(handle)
 
