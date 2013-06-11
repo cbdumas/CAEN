@@ -47,8 +47,11 @@ queueTail = POINTER(eventNode)()
 
 
 start = time.time()
-while time.time()-start<5:
+while time.time()-start<int(sys.argv[1]):
     num=caenlib.getFromCAEN(handle,buff,byref(queueHead),byref(queueTail))
+
+caenlib.stopCAEN(handle)
+caenlib.closeCAEN(handle,byref(buff))
 
 plt.hold(True)
 #Do we want to step through every event and look at it?
@@ -63,40 +66,43 @@ ypoints = list()
 energylist = list()
 while queueHead:
     i+=1
-    print("event!",i)
+    samples = queueHead.contents.samples
     if inspect:
         for chan in range(4):
             plt.figure(chan)
             plt.clf()
-            plt.plot(queueHead.contents.event[chan][0:150])       #plot original and smoothed
-            plt.plot(sig.convolve(queueHead.contents.event[chan][0:150],
+            plt.plot(queueHead.contents.event[chan][0:samples])       #plot original and smoothed
+            plt.plot(sig.convolve(queueHead.contents.event[chan][0:samples],
                                     [.1,.1,.1,.1,.1,.1,.1,.1,.1,.1],mode='same'))
         plt.show(block=False)
         command = input("Continue? Y/n")
         if command == 'n' or command == 'N':
             inspect = False
     peaks=[]
+    areas=[]
     for chan in range(4):
-        peaks.append(max(sig.convolve(queueHead.contents.event[chan][0:150], [.1,.1,.1,.1,.1,.1,.1,.1,.1,.1],mode='same')))
+        smoothed = sig.convolve(queueHead.contents.event[chan][0:samples], [.1,.1,.1,.1,.1,.1,.1,.1,.1,.1],mode='same')
+        peaks.append(max(smoothed))
     x = (peaks[0]-peaks[1])/(peaks[0]+peaks[1])
     y = (peaks[2]-peaks[3])/(peaks[2]+peaks[3])
-    energy = sum(peaks)
     xpoints.append(x)
     ypoints.append(y)
-    energylist.append(energy)
+    energylist.append(sum(peaks))
+    caenlib.freeEvent(queueHead.contents.prv)
     queueHead = queueHead.contents.nxt
 
-while queueTail:
-    caenlib.freeEvent(queueTail.contents.nxt)
-    queueTail = queueTail.contents.prv
+print(i," events")
 
+#while queueTail:
+#    caenlib.freeEvent(queueTail.contents.nxt)
+#    queueTail = queueTail.contents.prv
+
+energylist = [val for val in energylist if val<2000]
+
+plt.figure()
+plt.hist(energylist,bins=(max(energylist)-min(energylist)/3))
 plt.figure()
 plt.scatter(xpoints,ypoints)
-plt.figure()
-plt.hist(energylist,bins=(max(energylist)-min(energylist)))
-plt.show()
+plt.show(block = False)
+input("Enter to continue")
 
-
-caenlib.stopCAEN(handle)
-
-caenlib.closeCAEN(handle,byref(buff))
